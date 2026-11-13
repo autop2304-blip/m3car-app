@@ -1,0 +1,24 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/admin/*"
+  to = "/.netlify/functions/admin-api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/driver/*"
+  to = "/.netlify/functions/driver-api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
