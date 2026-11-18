@@ -319,29 +319,24 @@ export const CustomerView: React.FC = () => {
   setGpsStatus('Mengambil koordinat GPS...');
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
-      const lat = Number(pos.coords.latitude.toFixed(5));
-      const lng = Number(pos.coords.longitude.toFixed(5));
-      setPickupLat(lat);
-      setPickupLng(lng);
+      const lat = pos.coords.latitude.toFixed(5);
+      const lng = pos.coords.longitude.toFixed(5);
+      setPickupLat(Number(lat));
+      setPickupLng(Number(lng));
       setPickupLocation('Mencari nama alamat...');
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+        const res = await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng);
         const data = await res.json();
-        const alamat = data.display_name || `${data.address?.road || ''} ${data.address?.village || data.address?.suburb || ''}, ${data.address?.city || data.address?.town || ''}`.trim();
-        if (alamat && alamat.length > 5) {
-          setPickupLocation(alamat);
-          setGpsStatus(`Lokasi ditemukan`);
-        } else {
-          setPickupLocation(`${lat}, ${lng}`);
-          setGpsStatus(`Koordinat GPS aktif (${lat}, ${lng})`);
-        }
-      } catch (err) {
-        setPickupLocation(`${lat}, ${lng}`);
-        setGpsStatus(`Koordinat GPS aktif (${lat}, ${lng})`);
+        const nama = data.display_name || data.name || (lat + ', ' + lng);
+        setPickupLocation(nama);
+        setGpsStatus('Lokasi ditemukan');
+      } catch (e) {
+        setPickupLocation(lat + ', ' + lng);
+        setGpsStatus('Koordinat aktif: ' + lat + ', ' + lng);
       }
     },
     () => {
-      setGpsStatus('Gagal mengambil lokasi GPS. Silakan ketik alamat manual.');
+      setGpsStatus('Gagal ambil lokasi. Ketik manual.');
     },
     { enableHighAccuracy: true, timeout: 8000 }
   );
