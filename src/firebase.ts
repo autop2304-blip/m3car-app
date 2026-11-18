@@ -8,8 +8,8 @@ import { getFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 export const firebaseConfig = {
-  apiKey: "AIzaSyCY3Xvz-PXLWJcOb12YenQjBVb7N3GOOnw",
-  authDomain: "://firebaseapp.com",
+  apiKey: "AIzaSyCY3Xvz-PXLWJcOb12YenQjBVb7N3G00nW",
+  authDomain: "gen-lang-client-0714886029.firebaseapp.com",
   projectId: "gen-lang-client-0714886029",
   storageBucket: "gen-lang-client-0714886029.firebasestorage.app",
   messagingSenderId: "34702845710",
