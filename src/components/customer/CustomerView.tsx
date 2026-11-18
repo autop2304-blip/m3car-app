@@ -312,28 +312,40 @@ export const CustomerView: React.FC = () => {
   }, [passengers, deviationInfo.deviationKm, settings.pricePerPerson]);
 
   const handleUseGps = () => {
-    if (!navigator.geolocation) {
-      setGpsStatus('Browser tidak mendukung GPS.');
-      return;
-    }
-    setGpsStatus('Mengambil koordinat GPS...');
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = Number(pos.coords.latitude.toFixed(5));
-        const lng = Number(pos.coords.longitude.toFixed(5));
-        setPickupLat(lat);
-        setPickupLng(lng);
-        if (!pickupLocation.trim()) {
-          setPickupLocation(`Titik GPS (${lat}, ${lng})`);
+  if (!navigator.geolocation) {
+    setGpsStatus('Browser tidak mendukung GPS.');
+    return;
+  }
+  setGpsStatus('Mengambil koordinat GPS...');
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = Number(pos.coords.latitude.toFixed(5));
+      const lng = Number(pos.coords.longitude.toFixed(5));
+      setPickupLat(lat);
+      setPickupLng(lng);
+      setPickupLocation('Mencari nama alamat...');
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`);
+        const data = await res.json();
+        const alamat = data.display_name || `${data.address?.road || ''} ${data.address?.village || data.address?.suburb || ''}, ${data.address?.city || data.address?.town || ''}`.trim();
+        if (alamat && alamat.length > 5) {
+          setPickupLocation(alamat);
+          setGpsStatus(`Lokasi ditemukan`);
+        } else {
+          setPickupLocation(`${lat}, ${lng}`);
+          setGpsStatus(`Koordinat GPS aktif (${lat}, ${lng})`);
         }
+      } catch (err) {
+        setPickupLocation(`${lat}, ${lng}`);
         setGpsStatus(`Koordinat GPS aktif (${lat}, ${lng})`);
-      },
-      () => {
-        setGpsStatus('Gagal mengambil lokasi GPS. Silakan ketik alamat manual.');
-      },
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  };
+      }
+    },
+    () => {
+      setGpsStatus('Gagal mengambil lokasi GPS. Silakan ketik alamat manual.');
+    },
+    { enableHighAccuracy: true, timeout: 8000 }
+  );
+};
 
   const handleCustomerAuth = (e: React.FormEvent) => {
     e.preventDefault();
