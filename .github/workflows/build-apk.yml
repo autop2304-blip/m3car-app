@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     steps:
       - name: Checkout M3CAR source
         uses: actions/checkout@v4
@@ -34,22 +35,27 @@ jobs:
       - name: Install Android build components
         run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
 
+      - name: Fix Vite 8 and esbuild version conflict
+        run: npm pkg set 'devDependencies.esbuild=^0.28.0'
+
       - name: Install M3CAR dependencies
         run: npm install --no-audit --no-fund
-
-      - name: Build M3CAR web assets
-        run: npm run build
 
       - name: Install Capacitor Android
         run: npm install --no-save --no-audit --no-fund @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8
 
-      - name: Create and sync Android application
+      - name: Build M3CAR web app
         run: |
-          node -e "require('fs').writeFileSync('capacitor.config.json',JSON.stringify({appId:'com.m3car.app',appName:'M3CAR',webDir:'dist'}))"
-          npx cap add android
+          npm run build
+          test -f dist/index.html
+
+      - name: Prepare Android app
+        run: |
+          node --input-type=module -e "import {writeFileSync} from 'node:fs'; writeFileSync('capacitor.config.json', JSON.stringify({appId:'com.m3car.app', appName:'M3CAR', webDir:'dist'},null,2));"
+          if [ ! -f android/gradlew ]; then npx cap add android; fi
           npx cap sync android
 
-      - name: Build installable debug APK
+      - name: Build APK
         working-directory: android
         run: |
           chmod +x gradlew
